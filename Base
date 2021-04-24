@@ -1,0 +1,36 @@
+import pandas as pd
+import plotly as pl
+import requests
+from bs4 import BeautifulSoup
+html_data= requests.get("https://finance.yahoo.com/quote/MRF.NS/history?p=MRF.NS").text
+print(html_data)
+
+html_soup = BeautifulSoup(html_data,"html.parser")
+print(html_soup)
+
+print(html_soup.prettify())
+
+mrf_df = pd.DataFrame(columns = ["DATE","OPEN","HIGH","LOW","CLOSE","ADJCLOSE","VOLUME"])
+
+tables = html_soup.find_all('table')
+    #print(len(tables))
+    for table in tables:
+        for row in table.find_all('tr'):
+            col = row.find_all('td')
+            #print(col)
+            if len(col) == 7:
+                DATE=col[0].text
+                OPEN=col[1].text.replace(",","")
+                HIGH=col[2].text.replace(",","")
+                LOW=col[3].text.replace(",","")
+                CLOSE=col[4].text.replace(",","")
+                ADJCLOSE=col[5].text.replace(",","")
+                VOLUME=col[6].text.replace(",","")
+                mrf_df = mrf_df.append({"DATE":DATE, "OPEN":OPEN,"HIGH":HIGH,"LOW":LOW,"CLOSE":CLOSE,"ADJCLOSE":ADJCLOSE,"VOLUME":VOLUME},ignore_index=True)
+           
+mrf_df
+import plotly.express as px
+gf = px.scatter(mrf_df,x="DATE",y="HIGH",title="graph of highs over time")
+gf.show()
+
+
